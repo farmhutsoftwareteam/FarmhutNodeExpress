@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {Schema, model} = require("../db/connection") // import Schema & model
+
 
 
 const truckSchema = new mongoose.Schema({
