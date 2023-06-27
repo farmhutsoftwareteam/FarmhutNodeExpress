@@ -1,7 +1,7 @@
 require("dotenv").config() // load .env variables
 const mongoose = require("mongoose")
 
-const {Schema, model} = require("../db/connection") // import Schema & model
+const {Schema, model} = require("mongoose") // import Schema & model
 
 const FarmInputSchema = new Schema({
   name: {
