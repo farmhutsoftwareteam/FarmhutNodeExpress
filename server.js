@@ -25,6 +25,7 @@ const productController = require('./controllers/product');
 const inputController = require('./controllers/farminputs')
 const { Configuration, OpenAIApi} = require("openai")
 const conversationHistories = {};
+const weatherRouter = require('./routes/weather');
 
 
 
@@ -70,31 +71,18 @@ const WebSocket = require('ws');
 app.use(cors());
 app.use(morgan('tiny'));
 app.use(express.json());
-
-
-
-
-
 app.get('/', (req, res) => {
   res.send('FARMHUT SERVER RUNNING');
 });
 app.use("/user", UserRouter) // send all "/user" requests to UserRouter for routing
 app.use(express.static('public'));
-
 app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
-
 app.use('/', productController);
 app.use("/blog", blogPostRoutes)
 app.use('/logistics', truckRoutes);
-
-
-
-
-
 app.use('/', inputController);
+app.use('/weather', weatherRouter);
 
-
-// ... other code, including app setup and middleware
 
 app.post('/conversation', verifyToken, async (req, res) => {
   const { input } = req.body;
