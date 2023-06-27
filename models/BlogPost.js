@@ -1,5 +1,5 @@
 require("dotenv").config() // load .env variables
-const {Schema, model} = require("mongoose") // import Schema & model
+const {Schema, model} = require("../DB/connection") // import Schema & model
 
 const BlogPostSchema = new Schema({
   title: { type: String, required: true },
