@@ -14,7 +14,7 @@ const truckSchema = new mongoose.Schema({
   },
   availability: {
     type: String,
-    enum: ['yes', 'no'],
+    
     default: 'yes'
   },
   address: {
