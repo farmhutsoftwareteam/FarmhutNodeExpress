@@ -33,6 +33,7 @@
     "swagger-autogen": "^2.23.1",
     "swagger-ui-express": "^4.6.1",
     "uuid": "^9.0.0",
+    "uuidv4": "^6.2.13",
     "ws": "^8.13.0"
   }
 }
