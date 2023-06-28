@@ -24,6 +24,10 @@ const FarmInputSchema = new Schema({
     type: String,
     required: false
   },
+  location : {
+      type: String,
+      
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
