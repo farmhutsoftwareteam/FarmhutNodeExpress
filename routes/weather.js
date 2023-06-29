@@ -47,7 +47,6 @@ async function interpretData(weatherData, requestId) {
         ],
       });
   
-      // Update the response document with the interpretation
       const updatedResponse = await new Promise((resolve, reject) => {
         Response.findOneAndUpdate(
           { requestId },

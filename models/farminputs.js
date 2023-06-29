@@ -28,6 +28,9 @@ const FarmInputSchema = new Schema({
       type: String,
       
   },
+  contactdetails : {
+      type: String,
+  },
 
   createdAt: {
     type: Date,
