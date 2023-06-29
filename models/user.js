@@ -5,7 +5,7 @@ const {Schema, model} = require("../DB/connection") // import Schema & model
 const UserSchema = new Schema({
     phone: {type: String, unique: true, required: true},
     username: {type: String, unique: true, required: true},
-    password: {type: String, required: true},
+    password: {type: String, required: false},
     avatar: {type: String, default: ""},
     fullName: {type: String, default: ""},
     email: {type: String, default: ""},

@@ -20,13 +20,13 @@ const { SECRET = "secret" } = process.env;
 router.post("/signup", async (req, res) => {
   try {
     // Hash the password before saving it to the database
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    
 
     // Create a new user with the hashed password
     const newUser = new User({
       phone: req.body.phone,
       username: req.body.username,
-      password: hashedPassword,
+      
     });
 
     // Save the new user to the database
