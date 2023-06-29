@@ -52,7 +52,8 @@ router.post('/farm-inputs/add',verifyToken , async (req, res) => {
     price: req.body.price,
     supplier: req.body.supplier,
     quantity: req.body.quantity,
-    location: req.body.location
+    location: req.body.location,
+    contactdetails : req.body.contactdetails
   });
 
   try {
