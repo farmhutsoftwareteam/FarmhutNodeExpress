@@ -57,11 +57,18 @@ router.post("/signup", async (req, res) => {
 // Login route
 router.post("/login", async (req, res) => {
   try {
-    // Find the user with the given username
-    const user = await User.findOne({ phone: req.body.phone});
+    const { phone } = req.body;
 
-     // Track the login event in Mixpanel
-     mixpanelClient.track('Login', {
+    // Find the user with the given phone number
+    const user = await User.findOne({ phone });
+
+    // If the user doesn't exist, send an error response
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    // Track the login event in Mixpanel
+    mixpanelClient.track("Login", {
       distinct_id: user._id.toString(),
       phone: user.phone,
       username: user.username,
@@ -73,33 +80,16 @@ router.post("/login", async (req, res) => {
       $phone: user.phone,
     });
 
-    // If the user doesn't exist, send an error response
-    if (!user) {
-      res.status(337).json({ error: "You do not have an account please create one" });
-      return;
-    }
-
-    // Check if the given password matches the user's stored password
-    const isPasswordValid = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-
-    // If the password is invalid, send an error response
-    if (!isPasswordValid) {
-      res.status(400).json({ error: "Wrong Password" });
-      return;
-    }
-
     // Sign a JWT token with the user's id and username
     const token = jwt.sign({ id: user._id, username: user.phone }, SECRET);
 
     // Send the user object and the token in the response
     res.json({ user, token });
   } catch (error) {
-    res.status(400).json({ error });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 // Me route (requires authorization)
 router.get("/me", verifyToken, async (req, res) => {
