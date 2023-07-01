@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const machineryController = require('../controllers/machineryController');
+const machineryController = require('../controllers/machinery');
 
 // Create a new machinery entry
 router.post('/', machineryController.createMachinery);
