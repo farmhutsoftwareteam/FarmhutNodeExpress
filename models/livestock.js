@@ -24,19 +24,12 @@ const livestockSchema = Schema({
         type: String,
         required: true
     },
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    profile_picture : {
-        type: String,
-        default: "https://res.cloudinary.com/vambo/image/upload/v1679050917/images_aptta9.jpg",
-    },
+ 
+ 
 
   });
   
-  const Livestock = mongoose.model('Livestock', productSchema);
+  const Livestock = mongoose.model('Livestock', livestockSchema);
   
   module.exports = Livestock;
   

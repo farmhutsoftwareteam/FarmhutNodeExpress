@@ -16,7 +16,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const UserRouter = require("./controllers/user");
-const cloudinary = require('cloudinary').v2
+const LivestockRoutes = require("./routes/livestock")
 const blogPostRoutes = require('./routes/blogpost');
 const { SECRET = "secret" } = process.env;
 const swaggerFile = require('./swagger_output.json')
@@ -82,7 +82,7 @@ app.use("/blog", blogPostRoutes)
 app.use('/logistics', truckRoutes);
 app.use('/', inputController);
 app.use('/weather', weatherRouter);
-
+app.use('/livestock', LivestockRoutes);
 
 app.post('/conversation', verifyToken, async (req, res) => {
   const { input } = req.body;
