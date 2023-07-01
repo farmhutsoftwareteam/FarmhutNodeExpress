@@ -3,7 +3,7 @@
 let conversationHistory = [];
 
 require("dotenv").config();
-
+const machineryRoutes = require('./routes/machinery');
 const mixpanel = require('mixpanel');
 const jwt = require('jsonwebtoken');
 const truckRoutes = require('./routes/trucks');
@@ -83,7 +83,7 @@ app.use('/logistics', truckRoutes);
 app.use('/', inputController);
 app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
-
+app.use('/machinery', machineryRoutes);
 app.post('/conversation', verifyToken, async (req, res) => {
   const { input } = req.body;
   const userId = req.userId;
