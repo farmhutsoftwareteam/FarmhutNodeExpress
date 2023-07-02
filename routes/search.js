@@ -16,8 +16,8 @@ async function searchDatabase(prompt, databaseType) {
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo-16k',
       messages : [
-        {"role": "system", "content" : `You are a search engine you will crawl this database ${databaseType} you will give a user the following details about a truck from the database above drivername, availability contact details and location, please make sure that the location matches what the user asks`},
-        {"role" : "user", "content": prompt }
+        {"role": "system", "content" : `You are a search engine you will crawl this database ${databaseType} and answer this question ${prompt}, strictly only return responses that answer the users question`},
+       
       ],
     });
 
