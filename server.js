@@ -26,6 +26,7 @@ const inputController = require('./controllers/farminputs')
 const { Configuration, OpenAIApi} = require("openai")
 const conversationHistories = {};
 const weatherRouter = require('./routes/weather');
+const SearchRouter = require('./routes/search');
 
 
 
@@ -84,6 +85,7 @@ app.use('/', inputController);
 app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
+app.use('/search', SearchRouter);
 app.post('/conversation', verifyToken, async (req, res) => {
   const { input } = req.body;
   const userId = req.userId;
