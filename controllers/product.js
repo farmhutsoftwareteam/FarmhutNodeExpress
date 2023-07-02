@@ -52,6 +52,7 @@ router.get('/products/all', async (req, res) => {
             price: req.body.price,
             quantity: req.body.quantity,
               contactdetails: req.body.contactdetails,
+              location : req.body.location,
             createdBy: req.body.createdBy,
           });
         
