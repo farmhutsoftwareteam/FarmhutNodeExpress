@@ -26,7 +26,7 @@ const productSchema = Schema({
     },
     location : {
         type: String,
-        required: true
+        
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
