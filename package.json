@@ -4,7 +4,6 @@
   "description": "the future of agriculture",
   "main": "server.js",
   "scripts": {
-  
     "dev": "nodemon server.js",
     "start": "node server.js",
     "swagger-autogen": "node swagger.js"
@@ -12,6 +11,7 @@
   "author": "munya makosa",
   "license": "ISC",
   "dependencies": {
+    "algoliasearch": "^4.18.0",
     "and": "^0.0.3",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.34.0",
@@ -29,6 +29,7 @@
     "nodemailer": "^6.9.1",
     "nodemon": "^2.0.20",
     "openai": "^3.2.1",
+    "redis": "^4.6.7",
     "socket.io": "^4.6.1",
     "swagger-autogen": "^2.23.1",
     "swagger-ui-express": "^4.6.1",

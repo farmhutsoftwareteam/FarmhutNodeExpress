@@ -1,5 +1,7 @@
 const express = require('express');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+const SearchRes = require('../models/search');
 const { Configuration, OpenAIApi } = require('openai');
 const configuration = new Configuration({
   apiKey: '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',
@@ -8,163 +10,67 @@ const configuration = new Configuration({
 const router = express.Router();
 
 // Function to search the database using OpenAI
-async function searchDatabase(prompt, databaseType) {
+async function searchDatabase(prompt, databaseType, requestId) {
   try {
     const openai = new OpenAIApi(configuration);
-  
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo-16k',
-      messages : [
-        {"role": "system", "content" : `You are a search engine you will crawl this database ${databaseType} and answer this question ${prompt}, strictly only return responses that answer the users question`},
-       
+      messages: [
+        {
+          role: 'system',
+          content: `You are a search engine. You will crawl the ${databaseType} database and answer the following question: ${prompt}. Only return responses that directly answer the user's question.`,
+        },
       ],
     });
 
-    const searchResults = completion.data.choices[0].message.content;
-    return searchResults;
+    await SearchRes.findOneAndUpdate(
+      { requestId },
+      { results: JSON.stringify(completion.data.choices[0].message.content) },
+      { upsert: true }
+    );
+
+    return completion.data.choices[0].message.content;
   } catch (error) {
     console.error(error);
     throw new Error('Failed to search the database using OpenAI');
   }
 }
 
-// Retrieve the databases and search using OpenAI
-async function searchDatabases(databaseType) {
-  try {
-    let database;
-    switch (databaseType) {
-      case 'products':
-        database = await getProductDatabase();
-        break;
-      case 'machinery':
-        database = await getMachineryDatabase();
-        break;
-      case 'farmInputs':
-        database = await getFarmInputDatabase();
-        break;
-      case 'trucks':
-        database = await getTrucksDatabase();
-        break;
-      case 'livestock':
-        database = await getLivestockDatabase();
-        break;
-      default:
-        throw new Error('Invalid database type');
-    }
-
-    // Convert the JSON object to a string
-    const prompt = JSON.stringify(database);
-
-    // Search the specified database using OpenAI
-    const searchResults = await searchDatabase(prompt, databaseType);
-    return searchResults;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to search the databases using OpenAI');
-  }
-}
-
-// Retrieve the product database
-async function getProductDatabase() {
-  try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/products/all',
-      headers: {},
-    };
-
-    const response = await axios.request(config);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve the product database');
-  }
-}
-
-// Retrieve the machinery database
-async function getMachineryDatabase() {
-  try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/machinery/',
-      headers: {},
-    };
-
-    const response = await axios.request(config);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve the machinery database');
-  }
-}
-
-// Retrieve the farm input database
-async function getFarmInputDatabase() {
-  try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/farm-inputs/all',
-      headers: {},
-    };
-
-    const response = await axios.request(config);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve the farm input database');
-  }
-}
-
-// Retrieve the trucks database
-async function getTrucksDatabase() {
-  try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/logistics/trucks/all',
-      headers: {},
-    };
-
-    const response = await axios.request(config);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve the trucks database');
-  }
-}
-
-// Retrieve the livestock database
-async function getLivestockDatabase() {
-  try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/livestock/',
-      headers: {},
-    };
-
-    const response = await axios.request(config);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve the livestock database');
-  }
-}
-
 // Route to search the specified database using OpenAI
-router.get('/search/:databaseType', async (req, res) => {
+router.post('/search/:databaseType', async (req, res) => {
   try {
     const { databaseType } = req.params;
-    const  prompt = req.body.prompt;
+    const prompt = req.body.prompt;
     if (!prompt) {
-        return res.status(400).json({ error : 'Search query is missing'});
+      return res.status(400).json({ error: 'Search query is missing' });
     }
-    const searchResults = await searchDatabases(databaseType, prompt);
-    res.json({ results: searchResults });
+
+    const requestId = uuidv4();
+    // Process the OpenAI search in the background
+    searchDatabase(prompt, databaseType, requestId);
+
+    // Respond immediately with the requestId
+    res.json({ requestId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/searchreq/:requestId', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const response = await SearchRes.findOne({ requestId });
+    if (!response) {
+      return res.status(404).json({ error: 'Response not found' });
+    }
+
+    if (response.results) {
+      return res.json({ results: JSON.parse(response.results) });
+    } else {
+      res.status(204).send();
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
