@@ -40,7 +40,7 @@ async function interpretData(weatherData, requestId) {
     try {
       const openai = new OpenAIApi(configuration);
       const completion = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: "gpt-3.5-turbo-16k",
         messages: [
           {"role": "system", "content": "The user will provide you with data for a certain region, you will help this farmer make a good decision about their agriculture business, you will also give them the weather report in a nice and readable manner, add emojies where possible to describe things like hot or cold, windy or sunny.Emojies are very important as they make the report friendly. I also want you to think about the region where the farmer is from and create a unique tip that will benefit their farming business in line with the weather make it extensive by suggesting crops and also outlining the best way to avoid diseases, pests, droughts and other hazards related to their location. Please only use metric units"},
           {role: "user", content: prompt}
