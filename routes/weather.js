@@ -114,7 +114,7 @@ router.get('/:requestId', async (req, res) => {
     }
 
     if (response.interpretation) {
-      res.json({ messagewe: response.interpretation });
+      res.json({ messagewe: JSON.parse(response.interpretation) });
     } else {
       res.status(204).send();
     }
