@@ -13,15 +13,15 @@ const configuration = new Configuration({
 const router = express.Router();
 
 // Function to send weather data to OpenAI for interpretation
-async function interpretData(crop, requestId) {
-  const prompt = ` ${(crop)}`;
+async function interpretData(crop, topic, requestId) {
+  const prompt = ` ${(crop)} ${(topic)}`;
 
   try {
     const openai = new OpenAIApi(configuration);
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
       messages: [
-        {"role": "system", "content": "You are an AI tool that creates production guides based on the crop a user suggests, you will give the user a fully detailed guide on how to grow the crop the least text is 3000 words please avoid using emojoies and slang."},
+        {"role": "system", "content": "You are an AI tool that creates production guides based on the crop and topic a user suggests. You will give the user a fully detailed guide on how to grow the crop with the specified topic. The minimum text length is 3000 words. Please avoid using emojis and slang."},
         {role: "user", content: prompt}
       ],
     });
@@ -90,7 +90,7 @@ async function interpretData(crop, requestId) {
 
     const pdfBytes = await pdfDoc.save();
 
-    const pdfPath = `/pdfs/${requestId}.pdf`;
+    const pdfPath = `public/pdfs/${requestId}.pdf`;
 
     fs.writeFileSync(pdfPath, pdfBytes);
 
@@ -111,9 +111,10 @@ async function interpretData(crop, requestId) {
 router.get('/', async (req, res) => {
   try {
     const crop = req.query.crop;
+    const topic = req.body.topic;
 
-    if (!crop) {
-      return res.status(400).json({ error: 'crop parameter is missing' });
+    if (!crop || !topic) {
+      return res.status(400).json({ error: 'crop and topic parameters are required' });
     }
 
     const requestId = uuidv4();
@@ -122,12 +123,13 @@ router.get('/', async (req, res) => {
     const response = new GuideSchema({
       requestId,
       crop,
+      topic,
     });
 
     // Save the response document to the database
     await response.save();
 
-    const pdfUrl = await interpretData(crop, requestId).catch((error) => {
+    const pdfUrl = await interpretData(crop, topic, requestId).catch((error) => {
       console.error(error);
     });
 
