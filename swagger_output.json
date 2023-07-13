@@ -22,22 +22,20 @@
         }
       }
     },
-    "/conversation": {
+    "/api/assistant": {
       "post": {
         "description": "",
         "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
-                "input": {
+                "userId": {
+                  "example": "any"
+                },
+                "prompt": {
                   "example": "any"
                 }
               }
@@ -48,8 +46,8 @@
           "200": {
             "description": "OK"
           },
-          "401": {
-            "description": "Unauthorized"
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -1035,6 +1033,56 @@
       }
     },
     "/search/searchreq/{requestId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/production/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "crop",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/production/{requestId}": {
       "get": {
         "description": "",
         "parameters": [

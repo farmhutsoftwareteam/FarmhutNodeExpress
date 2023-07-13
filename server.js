@@ -24,15 +24,15 @@ const swaggerUi = require('swagger-ui-express')
 const productController = require('./controllers/product');
 const inputController = require('./controllers/farminputs')
 const { Configuration, OpenAIApi} = require("openai")
-const conversationHistories = {};
 const weatherRouter = require('./routes/weather');
 const SearchRouter = require('./routes/search');
+const ProductRouter = require('./routes/production');
 
 
 
 
 const configuration = new Configuration({
-    apiKey: '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'
+    apiKey: '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'
 })
 const openai = new OpenAIApi(configuration);
 function verifyToken(req, res, next) {
@@ -56,17 +56,9 @@ function verifyToken(req, res, next) {
 }
 
 
-///websocket for ai agronomist
+///websocket for ai agronomist this ufnciton is not working
 const http = require('http');
 const WebSocket = require('ws');
-
-
-
-
-
-
-
-
 
 //global middleware
 app.use(cors());
@@ -86,104 +78,69 @@ app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
 app.use('/search', SearchRouter);
-app.post('/conversation', verifyToken, async (req, res) => {
-  const { input } = req.body;
-  const userId = req.userId;
+app.use('/production', ProductRouter);
+app.post('/api/assistant', async (req, res) => {
+  const { userId, prompt } = req.body;
 
-  // Create a new conversation history for this user if it doesn't exist
-  if (!conversationHistories[userId]) {
-    conversationHistories[userId] = [];
+   // Check if the user's conversation history exists, otherwise initialize it as an empty array
+   if (!userConversations[userId]) {
+    // Pre-fill conversation history with a system message
+    userConversations[userId] = [
+      {
+        "role": "system",
+        "content": "You are uMudhumeni, an AI assistant designed by Farmhut Africa, your goal is to assist farmers and make sure that their productivity increases,make the messages interactive and friendly. "
+      }
+    ];
   }
-  console.log(...conversationHistories[userId])
-
-  // Add user message to this user's conversation history
-  conversationHistories[userId].push({
-    role: "user",
-    content: input,
-  });
-
-  // Construct messages array using this user's conversation history
-  const messages = [
-    
-    
-    ...conversationHistories[userId],
-  ];
+console.log(userConversations)
   
-console.log(messages)
   
-
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: messages,
-    
+  // Add the user's message to their conversation history
+  userConversations[userId].push({
+    "role": "user",
+    "content": prompt
   });
-
-  const aiResponse =   response.choices && response.choices.length > 0 ? response.choices[0].text.trim() : "Sorry, I didn't understand that.";
+   // Track user message event in Mixpanel
+   mixpanelClient.track('User Message', {
+    distinct_id: userId, // Assuming userId is available in the request body
+    message: prompt
+  });
+  console.log('Request body:', req.body);
+  const gptResponse = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-16k",
  
-  // Add AI response to this user's conversation history
-  conversationHistories[userId].push({
-    role: "assistant",
-    content: aiResponse,
-  });
 
-  // Track the conversation event in Mixpanel
-  mixpanelClient.track('Conversation', {
-    distinct_id: userId,
-    conversation_history: conversationHistories[userId],
+    messages: userConversations[userId] // Use the user's conversation history
   });
+  
+  console.log('gptResponse: ', gptResponse); // Log the entire response
+  console.log('gptResponse.data.choices[0]: ', gptResponse.data.choices[0]); // Log the first choice
 
-  res.send({ response: aiResponse, userId: userId });
+  // Check if choices and message exist in the response
+  if (gptResponse && gptResponse.data && gptResponse.data.choices && gptResponse.data.choices[0] && gptResponse.data.choices[0].message) {
+    const assistantReply = gptResponse.data.choices[0].message.content;
+  
+    // Add the assistant's reply to the user's conversation history
+    userConversations[userId].push({
+      "role": "assistant",
+      "content": assistantReply
+    });
+// Track assistant reply event in Mixpanel
+mixpanelClient.track('Assistant Reply', {
+  distinct_id: userId, // Assuming userId is available in the request body
+  message: assistantReply
+});
+    res.send({ 'botresponse': assistantReply });
+  } else {
+    res.status(500).send({ 'error': 'Unexpected response from OpenAI API' });
+  }
 });
 
 // Set up WebSocket server
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', function connection(ws) {
-  console.log('WebSocket connected');
 
-  ws.on('message', async function incoming(message) {
-    console.log('Received message:', message);
-
-    //add user messafe to history
-    conversationHistory.push({
-      speaker: "human",
-      message: message,
-    })
-
-    // Send the user's message to OpenAI API and receive a response
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `The following is a conversation with an AI assistant. The assistant is helpful and provides answers to agriculture questions and renewable energyk\n\n${conversationHistory.map(entry => entry.speaker + ": " + entry.message).join("\n")}\nAI:`,
-      temperature: 0.9,
-      max_tokens: 3000,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0.6,
-      stop: [" Human:", " AI:"],
-     
-    });
-
-    const aiResponse = response.data.choices[0].text;
-
-    //add ai response to history
-    conversationHistory.push({
-      speaker: "ai",
-      message: aiResponse,
-    })
-
-    // Determine the author type of the message
-    const authorType = message.authorType || "contact"; // Use "contact" as the default author type if not specified
-
-    // Send the AI response back to the WebSocket client
-     // Send the response and author type back to the WebSocket client
-     ws.send(JSON.stringify({ response: aiResponse, authorType }));
-  });
-
-  ws.on('close', function close() {
-    console.log('WebSocket disconnected');
-  });
-});
 
 
 const port = process.env.PORT || 4000;

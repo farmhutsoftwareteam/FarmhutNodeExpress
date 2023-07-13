@@ -12,6 +12,19 @@ const UserSchema = new Schema({
     isPublic: {type: Boolean, default: false},
     isVerified: {type: Boolean, default: false},
     isAvailable: {type: Boolean, default: false},
+    wallet: {
+        balance: {
+          type: Number,
+          required: false,
+          default: 0
+        },
+        transactions: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: "Transaction"
+          }
+        ]
+      }
    
 });
 
