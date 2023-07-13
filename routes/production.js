@@ -117,6 +117,7 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'crop and topic parameters are required' });
     }
 
+    
     const requestId = uuidv4();
 
     // Create a new response document using the GuideSchema model
