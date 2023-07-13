@@ -110,7 +110,7 @@ async function interpretData(crop, topic, requestId) {
 // Route to create the request for data from OpenAI
 router.get('/', async (req, res) => {
   try {
-    const crop = req.query.crop;
+    const crop = req.body.crop;
     const topic = req.body.topic;
 
     if (!crop || !topic) {
