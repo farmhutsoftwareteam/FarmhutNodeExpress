@@ -27,7 +27,7 @@ async function interpretData(crop, topic, requestId) {
     });
 
     const pdfDoc = await PDFDocument.create();
-    const customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const customFont = await pdfDoc.embedFont(StandardFonts.Montserrat);
     const fontSize = 12;
     const lineHeight = fontSize + 5; // Adjust the line height as needed
 
@@ -129,7 +129,8 @@ router.get('/', async (req, res) => {
     // Save the response document to the database
     await response.save();
 
-    const pdfUrl = await interpretData(crop, topic, requestId).catch((error) => {
+    // Process the PDF in the background
+    interpretData(crop, topic, requestId).catch((error) => {
       console.error(error);
     });
 
