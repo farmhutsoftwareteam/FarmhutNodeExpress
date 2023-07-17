@@ -1067,6 +1067,11 @@
             "name": "crop",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
