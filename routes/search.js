@@ -49,8 +49,7 @@ async function searchDatabase(prompt, databaseType, requestId) {
     const systemMessage = {
       role: 'system',
       content: `You are a search engine that is based on the following database: ${JSON.stringify(
-        cleanedDatabase
-      )}. You will answer the following question: ${prompt}. Only return responses that directly answer the user's question.`,
+        cleanedDatabase)}. You will answer the following question: ${prompt}. Only return responses that directly answer the user's question.`,
     };
     console.dir(systemMessage.content);
     const content = systemMessage.content;

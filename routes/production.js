@@ -2,9 +2,11 @@ const express = require('express');
 const GuideSchema = require('../models/productionguides');
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { Configuration, OpenAIApi } = require("openai");
-const { PDFDocument, StandardFonts, PageSizes } = require('pdf-lib');
+const { PDFDocument, StandardFonts, PageSizes, Image } = require('pdf-lib');
+const { font } = require('pdfkit');
 
 const configuration = new Configuration({
   apiKey: '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',
@@ -21,13 +23,13 @@ async function interpretData(crop, topic, requestId) {
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
       messages: [
-        {"role": "system", "content": "You are an AI tool that creates production guides based on the crop and topic a user suggests. You will give the user a fully detailed guide on how to grow the crop with the specified topic. The minimum text length is 3000 words. Please avoid using emojis and slang."},
-        {role: "user", content: prompt}
+        {"role": "system", "content": `You are an AI tool that will create a production guide for ${crop} under the topic ${topic}.The user desired to know indepth about the crop and under the specific topic, please be fully descriptive avoid emojies at all costs.`}
+       
       ],
     });
 
     const pdfDoc = await PDFDocument.create();
-    const customFont = await pdfDoc.embedFont(StandardFonts.Montserrat);
+    const customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontSize = 12;
     const lineHeight = fontSize + 5; // Adjust the line height as needed
 
@@ -41,6 +43,26 @@ async function interpretData(crop, topic, requestId) {
     const pageHeight = page.getHeight();
     const usableWidth = pageWidth - 2 * margin;
     const usableHeight = pageHeight - 2 * margin;
+
+//add header here
+const logoUrl = 'https://res.cloudinary.com/vambo/image/upload/v1678962963/image_x6jgwf.png';
+const logoImageBytes = await axios.get(logoUrl, { responseType: 'arraybuffer' });
+const logoImage = await pdfDoc.embedPng(logoImageBytes.data);
+const logoDims = logoImage.scale(0.1);
+const logoX = pageWidth - margin - logoDims.width - 50;
+page.drawImage(logoImage, {
+  x: logoX,
+  y: pageHeight - margin - logoDims.height - 10,
+  width: logoDims.width,
+  height: logoDims.height,
+});
+//footer nyama takuisa panapa
+const footerText = 'farmhutafrica.com';
+page.drawText(footerText, {
+  x: margin,
+  y: margin -fontSize,
+  size: fontSize,
+});
 
     let currentY = pageHeight - margin;
     let currentLine = '';
