@@ -179,7 +179,8 @@ router.get('/:requestId', async (req, res) => {
     if (response.pdfUrl) {
       // Construct the full URL to the PDF file using the req object
       const pdfUrl = `${req.protocol}://${req.get('host')}/${response.pdfUrl}`;
-      res.json({ pdfUrl });
+      const thePdf =  `${req.protocol}://${req.get('host')}/pdfs/${requestId}.pdf`;
+      res.json({ thePdf });
     } else {
       res.status(204).send();
     }
