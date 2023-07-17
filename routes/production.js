@@ -132,8 +132,8 @@ page.drawText(footerText, {
 // Route to create the request for data from OpenAI
 router.get('/', async (req, res) => {
   try {
-    const crop = req.body.crop;
-    const topic = req.body.topic;
+    const crop = req.query.crop;
+    const topic = req.query.topic;
 
     if (!crop || !topic) {
       return res.status(400).json({ error: 'crop and topic parameters are required' });
