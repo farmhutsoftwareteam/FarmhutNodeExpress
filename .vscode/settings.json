@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
         "uuidv"
-    ]
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/1f55f9a6-af4c-4d79-ad11-76cb67075ac6/resourceGroups/appsvc_linux_centralus_premium/providers/Microsoft.Web/sites/farmhut",
+    "appService.deploySubpath": "."
 }

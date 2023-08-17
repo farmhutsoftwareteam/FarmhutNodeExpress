@@ -32,7 +32,7 @@ const ProductRouter = require('./routes/production');
 
 
 const configuration = new Configuration({
-    apiKey: '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'
+    apiKey: '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'
 })
 const openai = new OpenAIApi(configuration);
 function verifyToken(req, res, next) {
@@ -78,6 +78,7 @@ app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
 app.use('/search', SearchRouter);
+
 app.use('/production', ProductRouter);
 app.post('/api/assistant', async (req, res) => {
   const { userId, prompt } = req.body;

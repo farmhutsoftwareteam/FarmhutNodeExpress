@@ -4,7 +4,7 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 const router = express.Router();
