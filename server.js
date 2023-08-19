@@ -28,6 +28,7 @@ const weatherRouter = require('./routes/weather');
 const SearchRouter = require('./routes/search');
 const ProductRouter = require('./routes/production');
 const { indexProducts } = require('./algoliaIndexing'); // Adjust the path
+const searchRouter = require('./routes/searchRoute'); // Adjust the path
 
 
 
@@ -70,6 +71,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('FARMHUT SERVER RUNNING');
 });
+app.use('/api', searchRouter);
+
 app.use("/user", UserRouter) // send all "/user" requests to UserRouter for routing
 app.use(express.static('public'));
 app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
