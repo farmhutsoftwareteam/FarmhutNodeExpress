@@ -27,6 +27,7 @@ const { Configuration, OpenAIApi} = require("openai")
 const weatherRouter = require('./routes/weather');
 const SearchRouter = require('./routes/search');
 const ProductRouter = require('./routes/production');
+const { indexProducts } = require('./algoliaIndexing'); // Adjust the path
 
 
 
@@ -59,6 +60,8 @@ function verifyToken(req, res, next) {
 ///websocket for ai agronomist this ufnciton is not working
 const http = require('http');
 const WebSocket = require('ws');
+indexProducts();
+
 
 //global middleware
 app.use(cors());
