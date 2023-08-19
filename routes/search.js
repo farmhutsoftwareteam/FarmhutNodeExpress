@@ -89,7 +89,7 @@ async function getProductDatabase() {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/products/all',
+      url: 'https://farmhut.azurewebsites.net/products/all',
       headers: {},
     };
 
@@ -107,7 +107,7 @@ async function getMachineryDatabase() {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/machinery/',
+      url: 'https://farmhut.azurewebsites.net/machinery/',
       headers: {},
     };
 
@@ -125,7 +125,7 @@ async function getFarmInputDatabase() {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/farm-inputs/all',
+      url: 'https://farmhut.azurewebsites.net/farm-inputs/all',
       headers: {},
     };
 
@@ -143,7 +143,7 @@ async function getTrucksDatabase() {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/logistics/trucks/all',
+      url: 'https://farmhut.azurewebsites.net/logistics/trucks/all',
       headers: {},
     };
 
@@ -161,7 +161,7 @@ async function getLivestockDatabase() {
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://goldfish-app-d5n57.ondigitalocean.app/livestock/',
+      url: 'https://farmhut.azurewebsites.net//livestock/',
       headers: {},
     };
 
