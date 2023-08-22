@@ -175,7 +175,7 @@ const updateProfilePicture = async (req, res) => {
   }
 };
 
-router.put('settings', verifyToken, async (req, res) => {
+router.put('/settings/:userId', async (req, res) => {
   try {
     const {
       avatar,
@@ -185,14 +185,18 @@ router.put('settings', verifyToken, async (req, res) => {
       isVerified,
       isAvailable,
     } = req.body;
-const user = await User.findById(req.userId);
+
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId);
 
     // If the user doesn't exist, send an error response
     if (!user) {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    //update user settings
+
+    // Update user settings
     user.avatar = avatar || user.avatar;
     user.fullName = fullName || user.fullName;
     user.email = email || user.email;
@@ -200,12 +204,15 @@ const user = await User.findById(req.userId);
     user.isVerified = isVerified || user.isVerified;
     user.isAvailable = isAvailable || user.isAvailable;
 
+    // Save the updated user settings to the database
     const updatedUser = await user.save();
+
     res.json({ user: updatedUser });
   } catch (error) {
     res.status(400).json({ error });
   }
 });
+
 
     
   
