@@ -54,6 +54,15 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// Get all users route
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 // Login route
 router.post("/login", async (req, res) => {
   try {
