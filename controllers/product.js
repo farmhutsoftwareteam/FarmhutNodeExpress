@@ -44,7 +44,7 @@ router.get('/products/all', async (req, res) => {
   });
   
         // CREATE a new product
-        router.post('/products/add',verifyToken, async (req, res) => {
+        router.post('/products/add', async (req, res) => {
           const product = new Product({
             name: req.body.name,
             description: req.body.description,

@@ -9,9 +9,10 @@ const UserSchema = new Schema({
     avatar: {type: String, default: ""},
     fullName: {type: String, default: ""},
     email: {type: String, default: ""},
-    isPublic: {type: Boolean, default: false},
-    isVerified: {type: Boolean, default: false},
-    isAvailable: {type: Boolean, default: false},
+    subscriptionStatus: { type: String, enum: ["active", "inactive"], default: "inactive" },
+  subscriptionPlan: { type: String, default: "" },
+  subscriptionExpiration: { type: Date, default: null },
+    
     wallet: {
         balance: {
           type: Number,

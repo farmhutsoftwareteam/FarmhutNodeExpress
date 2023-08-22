@@ -14,10 +14,11 @@ const mixpanelClient = mixpanel.init(mixpanelToken);
 const { log} = require("mercedlogger");
 const cors = require('cors');
 const morgan = require('morgan');
-const mongoose = require('mongoose');
 const UserRouter = require("./controllers/user");
 const LivestockRoutes = require("./routes/livestock")
 const blogPostRoutes = require('./routes/blogpost');
+const pesepay = require('pesepay-js'); // Import the pesepay-js library
+const User = require('./models/user')
 const { SECRET = "secret" } = process.env;
 const swaggerFile = require('./swagger_output.json')
 const swaggerUi = require('swagger-ui-express')
@@ -27,7 +28,7 @@ const { Configuration, OpenAIApi} = require("openai")
 const weatherRouter = require('./routes/weather');
 const SearchRouter = require('./routes/search');
 const ProductRouter = require('./routes/production');
-const { indexProducts } = require('./algoliaIndexing'); // Adjust the path
+const { indexProducts, indexFarmInput } = require('./algoliaIndexing'); // Adjust the path
 const searchRouter = require('./routes/searchRoute'); // Adjust the path
 
 
@@ -62,6 +63,7 @@ function verifyToken(req, res, next) {
 const http = require('http');
 const WebSocket = require('ws');
 indexProducts();
+indexFarmInput();
 
 
 //global middleware
@@ -84,7 +86,6 @@ app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
 app.use('/search', SearchRouter);
-
 app.use('/production', ProductRouter);
 app.post('/api/assistant', async (req, res) => {
   const { userId, prompt } = req.body;
@@ -148,7 +149,77 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 
+const client = new pesepay.PesePayClient('00ccb98b-e7aa-4625-b104-0df4dfa9d0cc', '78648f3416bf492b86ee97ed536d5fd7');
+app.post('/initiate-subscription', async (req, res) => {
+  try {
+    const user = await User.findOne({ phone: req.body.phone }); // Find the user
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
+    const subscriptionType = req.body.subscriptionType; // Assuming you send "monthly" or "halfYearly" in the request body
+
+    // Define subscription amounts and currency code
+    let amount, currencyCode;
+    if (subscriptionType === 'monthly') {
+      amount = 1500;
+      currencyCode = 'ZWL';
+    } else if (subscriptionType === 'halfYearly') {
+      amount = 20000;
+      currencyCode = 'ZWL';
+    } else {
+      return res.status(400).json({ message: 'Invalid subscription type' });
+    }
+
+    // Prepare seamless payment details
+    const paymentDetails = {
+      amountDetails: {
+        amount: amount,
+        currencyCode: currencyCode,
+      },
+      merchantReference: `SUB-${user._id}-${subscriptionType}`, // A unique reference for the payment
+      reasonForPayment: `Subscription (${subscriptionType})`,
+      resultUrl: 'https://my.resulturl.com',
+      paymentMethodCode: 'PZW201', // Replace with the appropriate payment method code
+      customer: {
+        phoneNumber: user.phone,
+      },
+      paymentMethodRequiredFields: { customerPhoneNumber: user.phone },
+    };
+
+    // Make seamless payment
+    const response = await client.makeSeamlessPayment(paymentDetails);
+    const referenceNumber = response.referenceNumber;
+
+    // Update user's subscription reference number and subscription type
+    user.subscriptionReferenceNumber = referenceNumber;
+    user.subscriptionType = subscriptionType;
+    await user.save();
+
+    return res.status(200).json({ pollUrl: response.pollUrl });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error initiating subscription' });
+  }
+});
+
+// Route to handle PesePay callback (resultUrl)
+app.post('/pese-pay-callback', async (req, res) => {
+  try {
+    // Parse callback data and update user's payment status
+    const referenceNumber = req.body.referenceNumber;
+    const user = await User.findOne({ paymentReferenceNumber: referenceNumber });
+    if (user) {
+      user.isAvailable = true; // Update user's availability or any relevant field
+      await user.save();
+    }
+
+    return res.status(200).send('Callback received');
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error handling callback' });
+  }
+});
 
 const port = process.env.PORT || 4000;
 server.listen(port, () => {

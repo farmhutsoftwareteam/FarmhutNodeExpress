@@ -15,20 +15,22 @@ router.get('/search', async (req, res) => {
     try {
       const searchResults = await productIndex.search(query);
   
-      const formattedResults = searchResults.hits.map(result => ({
-        name: result.name,
-        description: result.description,
-        price: result.price,
-        quantity: result.quantity,
-      }));
+      const formattedResults = searchResults.hits.map(result => (
+        `Name: ${result.name}\nDescription: ${result.description}\nPrice: ${result.price}\nQuantity: ${result.quantity}\n\n`
+      )).join('');
   
-      res.setHeader('Content-Type', 'application/json'); // Change content type
-      res.json(formattedResults);
+      const responseObject = {
+        results: formattedResults,
+      };
+  
+      res.setHeader('Content-Type', 'application/json');
+      res.json(responseObject);
     } catch (error) {
       console.error('Algolia search error:', error);
       res.status(500).json({ message: 'Search error occurred' });
     }
   });
+  
   
   
   
