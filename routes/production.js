@@ -23,7 +23,7 @@ async function interpretData(crop, topic, requestId) {
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
       messages: [
-        {"role": "system", "content": `You are an AI tool that will create a production guide for ${crop} under the topic ${topic}.The user desired to know indepth about the crop and under the specific topic, please be fully descriptive avoid emojies at all costs.`}
+        {"role": "system", "content": `You are an AI tool that will create a production guide for ${crop} under the topic ${topic}.The user desired to know indepth about the crop and under the specific topic, please be fully descriptive. Please do not use emojies juts use text`}
        
       ],
     });
@@ -179,7 +179,7 @@ router.get('/:requestId', async (req, res) => {
     if (response.pdfUrl) {
       // Construct the full URL to the PDF file using the req object
       const pdfUrl = `${req.protocol}://${req.get('host')}/${response.pdfUrl}`;
-      const thePdf =  `https://${req.get('host')}/pdfs/${requestId}.pdf`;
+      const thePdf =  `${req.protocol}://${req.get('host')}/pdfs/${requestId}.pdf`;
       res.json({ thePdf });
     } else {
       res.status(204).send();
