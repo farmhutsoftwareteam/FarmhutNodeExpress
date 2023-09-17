@@ -4,18 +4,73 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const multer = require("multer");
 const mixpanel = require('mixpanel');
-
-
 const mixpanelToken = '1d3b3900e364420afd3d3f96c268d88e'
 const mixpanelClient = mixpanel.init(mixpanelToken);
-
-
-
-
-
 const router = express.Router();
-
 const { SECRET = "secret" } = process.env;
+const verificationCodeStorage = new Map();
+function generateRandomFourDigitCode() {
+  const min = 1000;
+  const max = 9999;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+router.post("/generatecode", async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    // Generate a unique 4-digit verification code
+    const verificationCode = generateRandomFourDigitCode();
+
+    // TODO: Send the verification code to the user via a webhook.
+    // Example: sendVerificationCodeViaWebhook(phone, verificationCode);
+
+    // Store the verification code temporarily (replace with your preferred storage)
+    verificationCodeStorage.set(phone, verificationCode);
+
+    res.json({ message: "Verification code sent successfully", verificationCode , phone });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+// Route to verify the code and change the password
+router.put("/changepassword", async (req, res) => {
+  try {
+    const { phone, newPassword, code } = req.body;
+
+    // Retrieve the stored verification code associated with the phone number
+    const storedCode = verificationCodeStorage.get(phone);
+
+    // Check if the provided code matches the stored code
+    if (code !== storedCode) {
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password in the database
+    const updatedUser = await User.findOneAndUpdate(
+      { phone }, // Find the user by phone number
+      { password: hashedPassword }, // Update the password field
+      { new: true } // Return the updated user
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Remove the verification code from temporary storage
+    verificationCodeStorage.delete(phone);
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 
 // Signup route
 router.post("/signup", async (req, res) => {
@@ -54,7 +109,6 @@ router.post("/signup", async (req, res) => {
     res.status(400).json({ error });
   }
 });
-
 // App login route
 router.post("/applogin", async (req, res) => {
   try {
@@ -85,33 +139,7 @@ router.post("/applogin", async (req, res) => {
     // Send the user object and the token in the response
     res.json({ user, token });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// Update password route
-router.put("/updatepassword", async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-
-    // Find the user with the given phone number
-    const user = await User.findOne({ phone });
-
-    // If the user doesn't exist, send an error response
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update the user's password in the database
-    user.password = hashedPassword;
-    const updatedUser = await user.save();
-
-    // Send a response with the updated user data
-    res.json({ user: updatedUser });
-  } catch (error) {
+    console.error(error)
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -160,8 +188,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 // Me route (requires authorization)
 router.get("/me", verifyToken, async (req, res) => {
   try {
