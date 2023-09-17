@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'farmhut'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8B752B06969A4B368ECCAA1198B2AB73 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0D0893476DF44F5FA9546951E05DE11A }}
           package: .
