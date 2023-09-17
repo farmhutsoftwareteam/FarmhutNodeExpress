@@ -5,6 +5,7 @@ const User = require("../models/user");
 const multer = require("multer");
 const mixpanel = require('mixpanel');
 
+
 const mixpanelToken = '1d3b3900e364420afd3d3f96c268d88e'
 const mixpanelClient = mixpanel.init(mixpanelToken);
 
@@ -51,6 +52,67 @@ router.post("/signup", async (req, res) => {
     
   } catch (error) {
     res.status(400).json({ error });
+  }
+});
+
+// App login route
+router.post("/applogin", async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    // Find the user with the given phone number
+    const user = await User.findOne({ phone });
+
+    // If the user doesn't exist, send an error response
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    // If the user doesn't have a password, send an error response
+    if (!user.password) {
+      return res.status(401).json({ error: "Password not set" });
+    }
+
+    // Check if the provided password matches the user's password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(403).json({ error: "Invalid password" });
+    }
+
+    // Sign a JWT token with the user's id and phone number
+    const token = jwt.sign({ id: user._id, phone: user.phone }, SECRET);
+
+    // Send the user object and the token in the response
+    res.json({ user, token });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Update password route
+router.put("/updatepassword", async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    // Find the user with the given phone number
+    const user = await User.findOne({ phone });
+
+    // If the user doesn't exist, send an error response
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update the user's password in the database
+    user.password = hashedPassword;
+    const updatedUser = await user.save();
+
+    // Send a response with the updated user data
+    res.json({ user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

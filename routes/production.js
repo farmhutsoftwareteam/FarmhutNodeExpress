@@ -17,6 +17,7 @@ const router = express.Router();
 // Function to send weather data to OpenAI for interpretation
 async function interpretData(crop, topic, requestId) {
   const prompt = ` ${(crop)} ${(topic)}`;
+  console.time('PDF Generation'); // Start timer
 
   try {
     const openai = new OpenAIApi(configuration);
@@ -122,7 +123,15 @@ page.drawText(footerText, {
       { new: true }
     );
 
+    console.timeEnd('PDF Generation'); // End timer and print the elapsed time to the console
+    const webhookUrl = 'https://flows.messagebird.com/flows/invocations/webhooks/0871de4c-69ad-4924-b136-d406bc8a87e4'; // Replace with your webhook URL
+    
+    await axios.post(`${webhookUrl}?identifier=productionguides`, data);
+
+    console.log('Webhook has been sent'); // Log that the webhook has been sent
+
     return updatedResponse.pdfUrl;
+
   } catch (error) {
     console.error(error);
     throw new Error('Failed to interpret data using OpenAI');
