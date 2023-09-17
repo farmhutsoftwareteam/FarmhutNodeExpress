@@ -70,7 +70,7 @@ router.post("/applogin", async (req, res) => {
 
     // If the user doesn't have a password, send an error response
     if (!user.password) {
-      return res.status(401).json({ error: "Password not set" });
+      return res.status(401).json({ error: "Hi, it seems you have an account with us but you have not set your password." });
     }
 
     // Check if the provided password matches the user's password
