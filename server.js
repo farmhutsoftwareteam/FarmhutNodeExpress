@@ -30,6 +30,7 @@ const SearchRouter = require('./routes/search');
 const ProductRouter = require('./routes/production');
 const { indexProducts, indexFarmInput } = require('./algoliaIndexing'); // Adjust the path
 const searchRouter = require('./routes/searchRoute'); // Adjust the path
+const SurveyRoute = re
 
 
 
