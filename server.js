@@ -222,7 +222,7 @@ app.post('/pese-pay-callback', async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 8080;
 server.listen(port, () => {
   log.green(`Server listening on port ${port}`);
 });
