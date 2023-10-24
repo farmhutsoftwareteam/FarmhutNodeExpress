@@ -27,10 +27,10 @@ const inputController = require('./controllers/farminputs')
 const { Configuration, OpenAIApi} = require("openai")
 const weatherRouter = require('./routes/weather');
 const SearchRouter = require('./routes/search');
-const ProductRouter = require('./routes/production');
+//const ProductRouter = require('./routes/production');
 const { indexProducts, indexFarmInput } = require('./algoliaIndexing'); // Adjust the path
 const searchRouter = require('./routes/searchRoute'); // Adjust the path
-const SurveyRoute = re
+
 
 
 
@@ -87,7 +87,7 @@ app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
 app.use('/search', SearchRouter);
-app.use('/production', ProductRouter);
+//app.use('/production', ProductRouter);
 app.post('/api/assistant', async (req, res) => {
   const { userId, prompt } = req.body;
 
