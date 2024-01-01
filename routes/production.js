@@ -9,7 +9,7 @@ const { PDFDocument, StandardFonts, PageSizes, Image } = require('pdf-lib');
 const { font } = require('pdfkit');
 
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 const router = express.Router();
