@@ -2,11 +2,8 @@ const express = require('express');
 const Response = require('../models/weather'); // Update the path based on your file structure
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: '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',
-});
-
+const OpenAI = require('openai');
+const openai = new OpenAI( {apiKey :process.env.OPEN_AI_KEY })
 const router = express.Router();
 
 // Function to retrieve weather data from the weather API
@@ -21,6 +18,7 @@ async function getWeatherData(location) {
     },
   };
 
+  
   try {
     const response = await axios.request(options);
 
@@ -38,7 +36,7 @@ async function interpretData(weatherData, requestId) {
     const prompt = ` ${(weatherData)}`;
   
     try {
-      const openai = new OpenAIApi(configuration);
+     
       const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo-16k",
         messages: [

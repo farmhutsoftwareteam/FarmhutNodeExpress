@@ -3,10 +3,11 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const SearchRes = require('../models/search');
 const fs = require('fs');
-const { Configuration, OpenAIApi } = require('openai');
-const configuration = new Configuration({
-  apiKey: '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',
-});
+require('dotenv').config();
+
+
+const OpenAI = require('openai');
+const openai = new OpenAI( { apiKey :process.env.OPEN_AI_KEY })
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ async function searchDatabase(prompt, databaseType, requestId) {
   try {
     console.log(prompt)
     console.log(databaseType);
-    const openai = new OpenAIApi(configuration);
+    
 
     // Retrieve the appropriate database based on the databaseType
     let database;

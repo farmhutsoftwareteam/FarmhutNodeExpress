@@ -30,15 +30,13 @@ const SearchRouter = require('./routes/search');
 //const ProductRouter = require('./routes/production');
 const { indexProducts, indexFarmInput } = require('./algoliaIndexing'); // Adjust the path
 const searchRouter = require('./routes/searchRoute'); // Adjust the path
+const pdfAssistant = require('./routes/pdfAssistant')
+const latestmessge = require('./routes/latestMessage')
 
 
 
 
 
-const configuration = new Configuration({
-    apiKey: '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'
-})
-const openai = new OpenAIApi(configuration);
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -144,6 +142,7 @@ mixpanelClient.track('Assistant Reply', {
     res.status(500).send({ 'error': 'Unexpected response from OpenAI API' });
   }
 });
+app.use('/chat' , pdfAssistant)
 
 // Set up WebSocket server
 const server = http.createServer(app);
