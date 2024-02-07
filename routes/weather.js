@@ -6,6 +6,7 @@ const OpenAI = require('openai');
 const openai = new OpenAI( {apiKey :process.env.OPEN_AI_KEY })
 const router = express.Router();
 
+
 // Function to retrieve weather data from the weather API
 async function getWeatherData(location) {
   const options = {
@@ -23,6 +24,8 @@ async function getWeatherData(location) {
     const response = await axios.request(options);
 
     const weatherData = JSON.stringify(response.data);
+
+    console.log(weatherData)
     
     return weatherData;
   } catch (error) {
@@ -31,41 +34,98 @@ async function getWeatherData(location) {
   }
 }
 
-// Function to send weather data to OpenAI for interpretation
-async function interpretData(weatherData, requestId) {
-    const prompt = ` ${(weatherData)}`;
-  
-    try {
-     
-      const completion = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo-16k",
-        messages: [
-          {"role": "system", "content": "The user will provide you with data for a certain region, you will help this farmer make a good decision about their agriculture business, you will also give them the weather report in a nice and readable manner, add emojies where possible to describe things like hot or cold, windy or sunny.Emojies are very important as they make the report friendly. I also want you to think about the region where the farmer is from and create a unique tip that will benefit their farming business in line with the weather make it extensive by suggesting crops and also outlining the best way to avoid diseases, pests, droughts and other hazards related to their location. Please only use metric units"},
-          {role: "user", content: prompt}
-        ],
-      });
-  
-      const updatedResponse = await new Promise((resolve, reject) => {
-        Response.findOneAndUpdate(
-          { requestId },
-          { interpretation: JSON.stringify(completion.data.choices[0].message.content) },
-          { new: true },
-          (error, response) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(response);
-            }
-          }
-        );
+async function createAssistant() {
+  const payload = {
+    tools: [],
+    name: "Farmhut",
+    instructions: "You are an assistant to help me",
+    model: "munyaradzi", // Ensure this is a valid model for your Azure OpenAI service
+    file_ids: []
+  };
+
+  try {
+    const response = await axios.post(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/assistants`, payload, {
+      headers: {
+        'Authorization': `Bearer ${process.env.AZURE_OPENAI_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log("Assistant created:", response.data);
+    const assistantId = response.data.id;
+    return assistantId
+   
+  } catch (error) {
+    console.error("Failed to create assistant:", error);
+  }
+}
+
+createAssistant();
+
+async function interpretData(weatherData, requestId, assistantId) {
+  try {
+      // Create a Thread for the conversation
+      const thread = await openai.beta.threads.create();
+
+      // Define the function to be called by the Assistant
+      const functionCall = {
+          type: "code_interpreter",
+          code: `getWeatherData("${weatherData}")`, // Calling getWeatherData function
+      };
+
+      // Run the Assistant on the Thread with function calling
+      const run = await openai.beta.threads.runs.create({
+          thread_id: thread.id,
+          assistant_id: assistantId,
+          tools: [functionCall]
       });
 
-    } catch (error) {
+      // Retrieve the Assistant's response
+      const messages = await openai.beta.threads.messages.list({
+          thread_id: thread.id
+      });
+
+      // Update the database with the Assistant's response
+      const updatedResponse = await new Promise((resolve, reject) => {
+          Response.findOneAndUpdate(
+              { requestId },
+              { interpretation: JSON.stringify(messages) },
+              { new: true },
+              (error, response) => {
+                  if (error) {
+                      reject(error);
+                  } else {
+                      resolve(response);
+                  }
+              }
+          );
+      });
+
+  } catch (error) {
       console.error(error);
       throw new Error('Failed to interpret data using OpenAI');
+  }
+}
+
+
+  
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "getWeatherData",
+      description: "Retrieves weather data for a specific location",
+      parameters: {
+        type: "object",
+        properties: {
+          location: { type: "string", description: "Location to retrieve weather for" }
+        },
+        required: ["location"]
+      }
     }
   }
-  
+];
+
+
 
 // Route to get weather and return the response ID
 router.get('/', async (req, res) => {
