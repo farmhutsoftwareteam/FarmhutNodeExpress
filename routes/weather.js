@@ -118,11 +118,31 @@ async function createThread() {
   }
 }
 
+// Function to submit tool outputs for a run that requires action
+async function submitToolOutputs(threadId, runId, toolOutputs) {
+  try {
+    const response = await axios.post(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/threads/${threadId}/runs/${runId}/submit_tool_outputs?api-version=2024-02-15-preview`, {
+      tool_outputs: toolOutputs,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': process.env.AZURE_OPENAI_KEY,
+      }
+    });
+  return response.data
+    console.log("Tool outputs submitted:", response.data);
+  } catch (error) {
+    console.error("Failed to submit tool outputs:", error);
+    throw error;
+  }
+}
+
 // Function to run a thread
 async function runThread(threadId, assistantId) {
   try {
     const response = await axios.post(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/threads/${threadId}/runs?api-version=2024-02-15-preview`, {
       assistant_id: assistantId,
+      instructions: "Please give the user a response on the weather and how they can plan their season"
     }, {
       headers: {
         'Content-Type': 'application/json',
@@ -138,45 +158,71 @@ async function runThread(threadId, assistantId) {
   }
 }
 
-// Function to interpret data using Azure OpenAI Assistants
+// Updated interpretData function to include required action handling
 async function interpretData(location, requestId) {
   try {
     // Create an Assistant
     const assistantId = await createAssistant();
 
     // Create a Thread for the Assistant
-    const threadId = await createThread(assistantId);
+    const threadId = await createThread();
 
     // Define the message to be processed by the Assistant
     const messagePayload = {
       "role": "user",
-      "content": `I need to solve the equation for the weather in ${location}.`
+      "content": `What is the weather in ${location}?`
     };
 
     // Send the message to the Assistant's thread
-    const response = await axios.post(`https://farmhut-ai.openai.azure.com/openai/threads/${threadId}/messages?api-version=2024-02-15-preview`, messagePayload, {
+    await axios.post(`${process.env.AZURE_OPENAI_ENDPOINT}/openai/threads/${threadId}/messages?api-version=2024-02-15-preview`, messagePayload, {
       headers: {
-        'api-key': `${process.env.AZURE_OPENAI_KEY}`,
+        'api-key': process.env.AZURE_OPENAI_KEY,
         'Content-Type': 'application/json'
       }
     });
 
-    console.log("Assistant's response:", response.data);
-    const runId = await runThread(threadId, assistantId);
-    console.log("Run ID:", runId);
-    
+    // Initiate a run on the thread
+    const runResponse = await runThread(threadId, assistantId);
+
+    // Check if the run requires action
+    if (runResponse.status === 'requires_action') {
+      // Assume we have the tool outputs from external functions (e.g., getWeatherData)
+      // This part should be dynamic based on the actual required actions from the runResponse
+      const weatherData = await getWeatherData(location);
+      const toolOutputs = [{
+        tool_call_id: runResponse.required_action.submit_tool_outputs.tool_calls[0].id,
+        output: weatherData
+      }];
+console.log(weatherData)
+      // Submit tool outputs for the run
+      await submitToolOutputs(threadId, runResponse.id, toolOutputs);
+      console.log('tool  outputs submitted')
+    }
+
+  
+
+    // Update the database with the interpretation result
     await Response.findOneAndUpdate(
       { requestId },
-      { interpretation: JSON.stringify(response.data) },
+  
       { new: true }
     );
-    return threadId
+
+    return {
+      threadId: threadId,
+      runStatus: runResponse.status // Assuming runResponse includes status
+    };
 
   } catch (error) {
-    console.error(error);
+    console.error("Failed to interpret data using Azure OpenAI Assistants:", error);
     throw new Error('Failed to interpret data using Azure OpenAI Assistants');
   }
 }
+
+// Note: This function assumes that the necessary auxiliary functions such as createAssistant, createThread, runThread, fetchThreadMessages, getWeatherData, and submitToolOutputs are implemented properly.
+// The `getWeatherData` function should be implemented to fetch weather data from an external API and format it as required by your tool.
+// The `submitToolOutputs` function should be implemented to submit the tool outputs to Azure OpenAI as shown in the previous example.
+
 
 // Router setup
 router.get('/', async (req, res) => {
@@ -187,13 +233,12 @@ router.get('/', async (req, res) => {
     }
 
     const requestId = uuidv4();
-    const response = new Response({ requestId, location });
-    await response.save();
+    await new Response({ requestId, location }).save();
 
-    const threadId = await interpretData(location, requestId);
+    const { threadId, runStatus } = await interpretData(location, requestId);
 
-
-    res.json({ requestId , threadId });
+    // Respond with thread ID and run status if it's in progress
+    res.json({  threadId, runStatus });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
