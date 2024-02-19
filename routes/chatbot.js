@@ -228,7 +228,7 @@ async function processUserQuery(userQuery, userId) {
 
         let statusResult;
         do {
-            statusResult = await checkStatusAndPrintMessages(threadId, run.id);
+            statusResult = await checkStatusAndPrintMessages(threadId, run.id , userId);
             if (["requires_action", "in_progress"].includes(statusResult.status)) {
                 await new Promise((resolve) => setTimeout(resolve, 5000));
             }
@@ -252,6 +252,7 @@ async function checkStatusAndPrintMessages(threadId, runId ,userId) {
         if (runStatus.status === "completed") {
             const messages = await openai.beta.threads.messages.list(threadId);
             console.log('The Run is now Complete')
+            console.log(userId)
             const webhookUrl ="https://flows.messagebird.com/flows/invocations/webhooks/dd0acae0-073f-40bb-97b2-3ee23290b7a9"
             const postData = {
                 identifier : userId
