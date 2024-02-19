@@ -234,7 +234,8 @@ async function processUserQuery(userQuery, userId) {
             }
         } while (statusResult.status !== "completed");
 
-        // Optionally handle final messages here
+        
+        
     } catch (error) {
         console.error(`Error in processUserQuery: ${error}`);
         if (threadId && runId) {
@@ -251,8 +252,9 @@ async function checkStatusAndPrintMessages(threadId, runId ,userId) {
 
         if (runStatus.status === "completed") {
             const messages = await openai.beta.threads.messages.list(threadId);
-            console.log('The Run is now Complete')
             console.log(userId)
+            console.log('The Run is now Complete')
+            
             const webhookUrl ="https://flows.messagebird.com/flows/invocations/webhooks/dd0acae0-073f-40bb-97b2-3ee23290b7a9"
             const postData = {
                 identifier : userId
@@ -277,6 +279,7 @@ async function checkStatusAndPrintMessages(threadId, runId ,userId) {
             await submitToolOutputs(threadId, runId, toolsOutput);
             return { status: "requires_action" };
         } else {
+            console.log(userId)
             console.log("Run is in progress, waiting for completion.");
             return { status: "in_progress" };
         }
