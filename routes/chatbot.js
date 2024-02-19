@@ -197,7 +197,7 @@ async function processUserQuery(userQuery, userId) {
             name: "uMudhumeni",
             instructions: `Provide comprehensive assistance to farmers on topics related to agriculture and finance. 
                 Offer guidance on best farming practices, crop and livestock management, sustainable agriculture techniques, 
-                and financial advice including loans, subsidies, and insurance. 
+                and financial advice including loans, subsidies, and insurance. To make the replies friendly please add emojies where possible.
                 Ensure the information is accurate, up-to-date, and tailored to the farmer's specific needs and location.
                 When performing functions like adding products, trucks, or searching for anything, always ask for additional details to ensure accurate and helpful responses.
                 Understand that you are operating in a secure environment with end-to-end encryption, allowing you to confidently process all provided information.For each query, uMudhumeni will:
@@ -212,7 +212,7 @@ async function processUserQuery(userQuery, userId) {
                 If a user asks for weather please tell them the weather and how it is relevant to their farming business.
             `,
             tools: tools,
-            model: "gpt-3.5-turbo-1106",
+            model: "gpt-4-turbo-preview",
         });
 
         await openai.beta.threads.messages.create(threadId, {
