@@ -5,6 +5,7 @@ const {Schema, model} = require("../DB/connection") // import Schema & model
 const UserSchema = new Schema({
     phone: {type: String, unique: true, required: true},
     azureThreadId : {type : String, required : false},
+    openaiThreadId: {type : String, required : false},
     username: {type: String, unique: true, required: true},
     password: {type: String, required: false},
     avatar: {type: String, default: ""},

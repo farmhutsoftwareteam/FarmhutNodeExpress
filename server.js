@@ -32,6 +32,7 @@ const { indexProducts, indexFarmInput } = require('./algoliaIndexing'); // Adjus
 const searchRouter = require('./routes/searchRoute'); // Adjust the path
 const pdfAssistant = require('./routes/pdfAssistant')
 const latestmessge = require('./routes/latestMessage')
+const chatbot = require('./routes/chatbot')
 
 
 
@@ -85,6 +86,8 @@ app.use('/weather', weatherRouter);
 app.use('/livestock', LivestockRoutes);
 app.use('/machinery', machineryRoutes);
 app.use('/search', SearchRouter);
+app.use('/chatbot', chatbot)
+app.use('/', latestmessge)
 //app.use('/production', ProductRouter);
 app.post('/api/assistant', async (req, res) => {
   const { userId, prompt } = req.body;
