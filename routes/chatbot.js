@@ -245,12 +245,23 @@ async function processUserQuery(userQuery, userId) {
     }
 }
 
-async function checkStatusAndPrintMessages(threadId, runId) {
+async function checkStatusAndPrintMessages(threadId, runId ,userId) {
     try {
         const runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
 
         if (runStatus.status === "completed") {
             const messages = await openai.beta.threads.messages.list(threadId);
+            console.log('The Run is now Complete')
+            const webhookUrl ="https://flows.messagebird.com/flows/invocations/webhooks/dd0acae0-073f-40bb-97b2-3ee23290b7a9"
+            const postData = {
+                identifier : userId
+            }
+            await axios.post(webhookUrl, postData)
+            .then(response => console.log("Notification sent succesfully"))
+            .catch(error => console.log("Error sending notification" ,error))
+
+            
+
             return {
                 status: "completed",
                 messages: messages.data.map((msg) => ({
